@@ -12,12 +12,28 @@ DIM_GREEN = (0, 128, 0)
 GRAY = (192, 192, 192)
 DIM_GRAY = (128, 128, 128)
 
+radius = 150
+
+def calculate_position(angle):
+    global radius
+    x = 1050 + math.cos(math.radians(angle)) * radius
+    y = 550 + math.sin(math.radians(angle)) * radius
+    return (x, y)
+
+def draw_servo_graphics(servo_angle):
+    pygame.draw.arc(gameDisplay, color=DIM_GREEN, rect=(900, 400, 300, 300),
+                    start_angle=0.0, stop_angle=math.pi, width=4)
+    pygame.draw.line(gameDisplay, color=DIM_GREEN, start_pos=(900, 550),
+                         end_pos=(1200, 550), width=4)
+    end_pos = calculate_position(-servo_angle)
+    pygame.draw.line(gameDisplay, color=DIM_GREEN, start_pos=(1050, 550),
+                     end_pos=end_pos, width=3)
+
 def draw_sonar(servo_angle, distance_sonic, distance_infra):
-    '''
+    """
     Function used for drawing sonar
     lines on the screen
-    '''
-
+    """
     # Screen clearing
     gameDisplay.fill((0, 0, 0))
     angle_text = font.render('Angle: ' + str(servo_angle), False, GREEN)
@@ -25,9 +41,9 @@ def draw_sonar(servo_angle, distance_sonic, distance_infra):
     infrared_text = font.render('Distance to infrared: ' + str(int(distance_infra)), False, DIM_GRAY)
 
     # Text rendering
-    gameDisplay.blit(angle_text, (80, 450))
-    gameDisplay.blit(sonic_text, (80, 500))
-    gameDisplay.blit(infrared_text, (80, 550))
+    gameDisplay.blit(angle_text, (960, 580))
+    gameDisplay.blit(sonic_text, (80, 450))
+    gameDisplay.blit(infrared_text, (800, 250))
 
     # Rectangles for displaying angles
     pygame.draw.rect(gameDisplay, GREEN, pygame.Rect(30, 30, 730, 400),
@@ -70,23 +86,32 @@ if __name__ == '__main__':
     for i in range(0,180):
             list_of_green_sonic.append(0)
             list_of_green_infrared.append(0)
+
+    distance_infra = 0
+    distance_sonic = 0
+    servo_angle = 0
+
     # Program running
     while True:
-        sleep(0.005)
-        # Serial data
-        rawdata = serial_conn.readline()
 
-        # Ultrasonic sensor error compensation
-        old_distance_sonic = distance_sonic
-        distance_sonic = int(rawdata.decode('utf-8').split(' ')[0])
-        if distance_sonic == 0:
-            distance_sonic = old_distance_sonic
+        try:
+            sleep(0.005)
+            # Serial data
+            rawdata = serial_conn.readline()
 
-        # Infrared sensor data aquisition
-        distance_infra = float(rawdata.decode('utf-8').split(' ')[1])
-        servo_angle = int(rawdata.decode('utf-8').split(' ')[2])
-        # Debugging purposes
-        # print(distance_sonic, distance_infra, angle)
+            # Ultrasonic sensor error compensation
+            old_distance_sonic = distance_sonic
+            distance_sonic = int(rawdata.decode('utf-8').split(' ')[0])
+            if distance_sonic == 0:
+                distance_sonic = old_distance_sonic
+
+            # Infrared sensor data acquisition
+            distance_infra = float(rawdata.decode('utf-8').split(' ')[1])
+            servo_angle = int(rawdata.decode('utf-8').split(' ')[2])
+            # Debugging purposes
+            # print(distance_sonic, distance_infra, angle)
+        except ValueError:
+            print('Runt frame caught, resuming...\n')
 
         # Truncate values
         if distance_sonic >= 200:
@@ -100,5 +125,7 @@ if __name__ == '__main__':
 
         # Update the values
         draw_sonar(servo_angle, distance_sonic, distance_infra)
+        # Draw graphics for angle viewing
+        draw_servo_graphics(servo_angle)
         # Update the display
         pygame.display.update()
