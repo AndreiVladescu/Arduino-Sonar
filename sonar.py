@@ -35,7 +35,9 @@ def draw_sonar(servo_angle, distance_sonic, distance_infra):
     lines on the screen
     """
     # Screen clearing
+    bg = pygame.image.load('imgs/background.jpg')
     gameDisplay.fill((0, 0, 0))
+    gameDisplay.blit(bg, (0, 0))
     angle_text = font.render('Angle: ' + str(servo_angle), False, GREEN)
     sonic_text = font.render('Distance to sonic: ' + str(distance_sonic), False, DIM_GREEN)
     infrared_text = font.render('Distance to infrared: ' + str(int(distance_infra)), False, DIM_GRAY)
