@@ -34,17 +34,18 @@ def draw_sonar(servo_angle, distance_sonic, distance_infra):
     Function used for drawing sonar
     lines on the screen
     """
-
     # Screen clearing
+    bg = pygame.image.load('imgs/background.jpg')
     gameDisplay.fill((0, 0, 0))
+    gameDisplay.blit(bg, (0, 0))
     angle_text = font.render('Angle: ' + str(servo_angle), False, GREEN)
     sonic_text = font.render('Distance to sonic: ' + str(distance_sonic), False, DIM_GREEN)
     infrared_text = font.render('Distance to infrared: ' + str(int(distance_infra)), False, DIM_GRAY)
 
     # Text rendering
-    gameDisplay.blit(angle_text, (80, 450))
-    gameDisplay.blit(sonic_text, (80, 500))
-    gameDisplay.blit(infrared_text, (80, 550))
+    gameDisplay.blit(angle_text, (960, 580))
+    gameDisplay.blit(sonic_text, (80, 450))
+    gameDisplay.blit(infrared_text, (800, 250))
 
     # Rectangles for displaying angles
     pygame.draw.rect(gameDisplay, GREEN, pygame.Rect(30, 30, 730, 400),
@@ -87,23 +88,32 @@ if __name__ == '__main__':
     for i in range(0,180):
             list_of_green_sonic.append(0)
             list_of_green_infrared.append(0)
+
+    distance_infra = 0
+    distance_sonic = 0
+    servo_angle = 0
+
     # Program running
     while True:
-        sleep(0.005)
-        # Serial data
-        rawdata = serial_conn.readline()
 
-        # Ultrasonic sensor error compensation
-        old_distance_sonic = distance_sonic
-        distance_sonic = int(rawdata.decode('utf-8').split(' ')[0])
-        if distance_sonic == 0:
-            distance_sonic = old_distance_sonic
+        try:
+            sleep(0.005)
+            # Serial data
+            rawdata = serial_conn.readline()
 
-        # Infrared sensor data acquisition
-        distance_infra = float(rawdata.decode('utf-8').split(' ')[1])
-        servo_angle = int(rawdata.decode('utf-8').split(' ')[2])
-        # Debugging purposes
-        # print(distance_sonic, distance_infra, angle)
+            # Ultrasonic sensor error compensation
+            old_distance_sonic = distance_sonic
+            distance_sonic = int(rawdata.decode('utf-8').split(' ')[0])
+            if distance_sonic == 0:
+                distance_sonic = old_distance_sonic
+
+            # Infrared sensor data acquisition
+            distance_infra = float(rawdata.decode('utf-8').split(' ')[1])
+            servo_angle = int(rawdata.decode('utf-8').split(' ')[2])
+            # Debugging purposes
+            # print(distance_sonic, distance_infra, angle)
+        except ValueError:
+            print('Runt frame caught, resuming...\n')
 
         # Truncate values
         if distance_sonic >= 200:
